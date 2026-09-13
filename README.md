@@ -2,6 +2,16 @@
 
 Este projeto constrói um pipeline completo de CI/CD em volta de uma aplicação Java de gerenciamento de contas de usuário (a vprofile, uma aplicação de exemplo bastante usada para praticar DevOps, com Spring MVC, RabbitMQ, ElasticSearch, Memcached e MySQL), cobrindo build, análise de qualidade de código, containerização em múltiplas camadas e entrega contínua até um repositório Helm separado, seguindo o modelo GitOps. O foco aqui não é a aplicação Java em si, mas toda a esteira de automação construída ao redor dela para levá-la de código fonte a uma imagem pronta para rodar em produção.
 
+## Onde este repositório se encaixa
+
+O CloudApp é dividido em três repositórios que se comunicam entre si, cada um com uma responsabilidade clara:
+
+- **[cloudapp-infra](https://github.com/beuren33/cloudapp-infra)**: provisiona o cluster EKS onde tudo roda
+- **[cloudapp-aplication](https://github.com/beuren33/cloudapp-aplication)** (este repositório): código fonte da aplicação e o pipeline de CI/CD que constrói a imagem Docker e a publica
+- **[cloudapp-helm](https://github.com/beuren33/cloudapp-helm)**: chart Helm e definições do ArgoCD que descrevem como a aplicação roda dentro do cluster, sincronizado automaticamente
+
+Este repositório é o ponto de partida do fluxo de entrega: a última etapa do pipeline descrita abaixo é justamente o que conecta este repositório ao `cloudapp-helm`, fechando o ciclo de GitOps.
+
 ## Como funciona
 
 O pipeline, definido em GitHub Actions, se comporta de forma diferente dependendo do tipo de evento que o dispara. Em um pull request, ele entra no modo de validação: compila a aplicação com Maven, roda os testes automatizados, gera um relatório de Checkstyle e envia tudo para uma análise de qualidade no SonarQube, que só libera a integração se passar pelo quality gate configurado. Isso funciona como um portão de qualidade antes que qualquer código entre na branch principal.
